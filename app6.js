@@ -11,6 +11,8 @@ const app = express();
     const a = (urlRequest.query);
     console.log(a);
 
+    //test
+
     const parsed = _.parseInt(a, base);
 
     if (_.isNumber(parsed) === true) {

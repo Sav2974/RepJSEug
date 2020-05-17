@@ -1,95 +1,131 @@
 const express=require("express");
 const url = require("url");
 const _ = require("lodash");
+const toBoolean = (text) => {
 
-// про функции
-/*
-  Есть два вида функций (в js)
-  стрелочные
-    const some_function = async () => {
-      ...
-    }
+  if (text === "true") {
+  return true
+  }
+  return false
 
-  и через слово function
-    function test_function() {
-      ...
-    }
+}
 
-  разница между ними в том что у стрелочной не будет this.
+const isBoolean = (param) => {
+  return param === "true" || param === "false"
+}
+const parseAsBoolean = (parameters,command) => {
+  console.log(parameters)
+  const a = parameters.value1;
+  const b = parameters.value2;
 
-  для просты используй всегда стрелоную, this в функциях - это бред
+  if (!isBoolean(a) || !isBoolean(b)) {
+    return {success:false}
+  }
+  if (command === "or") {
+    return {success:true,result:(toBoolean(a) || toBoolean(b))}
+  }
+  if (command === "and") {
+    return{success:true,result:(toBoolean(a) && toBoolean(b))}
+  }
+}
 
-  про this потом еще
+const parseAsString = (parameters,action) => {
 
-  каждая функция может возврашать какие-то данные
+console.log(parameters)
+const a = parameters.value1;
+const b = parameters.value2;
+console.log (a,b);
 
-  const f = () => { return "koko"; }
-  console.log((f()) -> "koko"
+if (action === "strSum") {
+  return {success:true, result:(a.concat(b))}
+}
+return {success:false}
+}
 
-  если return нет то вернется undefined.
- */
+  const parseAsNumber = (parameters,action) => {
 
+  console.log(parameters)
+  const a = parameters.value1;
+  const b = parameters.value2;
+  console.log (a,b);
+  const parsed1 = _.parseInt(a);
+  const parsed2 = _.parseInt(b);
+
+  if (typeof parsed1 !== "number" || typeof parsed2 !== "number") {
+    return {success:false};
+  }
+  if (action === "plus") {
+    return {success:true, result:parsed1+parsed2}
+  }
+  if (action === "minus") {
+    return {success:true, result:parsed1-parsed2}
+  }
+
+  return {success:false}
+}
 
 const app = express();
+  app.post("/or", (request,response) => {
+  console.log("or");
+  let urlRequest = url.parse(request.url, true);
+  let result = parseAsBoolean(urlRequest.query, "or");
+  if (result.success) {
+  response.end(result.result.toString())
+  return
+}
 
-  app.post("/", function(request,response) { // <- функция
-    console.log("server on");
+})
+
+  app.post("/and", (request,response) => {
+    console.log("and");
+    let urlRequest = url.parse(request.url, true);
+    let result = parseAsBoolean(urlRequest.query, "and");
+    if (result.success) {
+      response.end(result.result.toString())
+      return
+}
+
+})
+
+app.post("/stringsum", (request,response) => {
+  console.log("stringsum");
+  let urlRequest = url.parse(request.url, true);
+  let result = parseAsString(urlRequest.query, "strSum");
+  if (result.success) {
+    response.end(result.result.toString())
+    return
+}
+
+})
+
+  app.post("/minus", (request,response) => {
+    console.log("minus");
+    let urlRequest = url.parse(request.url, true);
+  //  console.log(urlRequest);
+    let result = parseAsNumber(urlRequest.query, "minus");
+//    console.log(result);
+    if (result.success) {
+      response.end(result.result.toString())
+      return;
+    } else {
+      result = parseAsBoolean(urlRequest.query)
+    }
+})
+
+
+  app.post("/plus", (request,response) => {
+    console.log("plus");
+
 
     let urlRequest = url.parse(request.url, true);
-    const a = (urlRequest.query);
-    console.log(a);
 
-    /*
-      base - переменная неопределена
-      вторым параметром посылается разряд, 10 -тичная, 2-ичная. 16-ричная и тд
-      в данном случае его посылать не обязательно
-      + можно использовать нативный js метод parseInt();
-      но это тоже самое по факту
-     */
-
-    /*
-      _.parseInt в случае если не сможет распарсить то что ты ей даешь выкинет исключение
-
-      Исключение - это такой механизм прерывания работы функции, он используется чтобы сказать что что-то пошло не так
-      синтакси такой
-
-      throw some_object;
-
-      чтобы словить исключение используется следуюю
-
-      try {
-        какой-то код исполняется
-        const obj = {};
-        throw obj;
-      } catch(e <- тут будет obj) {
-        тут его можно обрабатывать
-      }
-
-      внешний код об этой ошибке знать ничего не будет
-
-      то есть parseInt нужно обрамить в try {} catch(e) {}
-     */
-
-    try {
-      const parsed = _.parseInt(a, base);
-      if (_.isNumber(parsed) === true) {
-        response.end("yes");
-        // тут код пойдет выполняться дальше.
-      }
-    } catch (e) {
-      response.end("error");
+    let result = parseAsNumber(urlRequest.query, "plus");
+    if (result.success) {
+      response.end(result.result.toString())
       return;
+    } else {
+      result = parseAsBoolean(urlRequest.query)
     }
-
-    // сюда вот, и ответ будет послан дважды, ответ нельзя посылать дважды
-    // завершить выполнение можно следующими образами
-    // return <- выйдет из функции
-    // break <- выйдет из switch / case (это попозже)
-    // continue <- выйдет из for без прерывания цикла (это тоже попозже)
-    //
-    // тебе росле после кажлого end нужно завершая выполнение функции
-
-    response.end("no");
 
     });
 

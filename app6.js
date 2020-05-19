@@ -1,4 +1,4 @@
-const express=require("express");
+const express = require("express");
 const url = require("url");
 const _ = require("lodash");
 
@@ -22,11 +22,17 @@ const parseAsBoolean = (parameters,command) => {
     return {success:false}
   }
   if (command === "or") {
-    return {success:true,result:(toBoolean(a) || toBoolean(b))}
+    return { success:true, result: (toBoolean(a) || toBoolean(b)) }
   }
   if (command === "and") {
-    return{success:true,result:(toBoolean(a) && toBoolean(b))}
+    return { success:true, result: (toBoolean(a) && toBoolean(b)) }
   }
+  //if (command === "plus") {
+  //  return { success:true, result: (toBoolean(a) + toBoolean(b))}
+  //}
+  /* if (command === "plus") {
+    return { success: true, result: (to)}
+  } */
 }
 
 /*
@@ -38,15 +44,54 @@ const parseAsString = (parameters,action) => {
   console.log(parameters)
   const a = parameters.value1;
   const b = parameters.value2;
-  console.log (a,b);
-
+  //console.log (a,b);
+  const parsed1 = _.toString(a);
+  const parsed2 = _.toString(b)
   // what if input parameters are not string?
-
-  if (action === "strSum") {
-    return { success:true, result:(a.concat(b)) }
+  if (typeof parsed1 !== "string" || typeof parsed2 !== "string") {
+    return { success:false }
   }
-  return { success:false }
+  if (action === "strSum") {
+    return { success:true, result:(parsed1.concat(parsed2)) }
+  }
 }
+
+
+
+  const FuncName1 = (keyVal, type) => {
+    const a = keyVal.value1;
+    const b = keyVal.value2;
+    console.log(Object.keys(keyVal))
+    console.log(Object.values(keyVal));
+        if (type === "integer") {
+          if (a !== "null" && b !== "null") {
+            const parsed1 = _.parseInt(a);
+            const parsed2 = _.parseInt(b);
+            if (_.isNaN(parsed1) !== true && _.isNaN(parsed2) !== true) {
+              return { success:true, result:parsed1-parsed2 }
+          }
+          return { success:false }
+        }}
+        if (type === "string") {
+          const parsed1 = _.toString(Object.keys(keyVal));
+          const parsed2 = _.toString(Object.values(keyVal));
+          return { success:true, result:(parsed1+parsed2) }
+        }
+
+        if (type === "boolean") {
+        //console.log(isBoolean(a), isBoolean(b));
+          if (!isBoolean(a) || !isBoolean(b)) {
+            return { success:false }
+          }
+          return { success:true, result:a && b }
+        }
+        if (type === "object") {
+          return { success:true, result:true }
+        }
+      return { success:false }
+    }
+
+
 
 /*
   1. должна быть функция FuncName1
@@ -100,7 +145,7 @@ const app = express();
       return
     }
 
-    response.status(/*http status, 400*/).send("unsuppoerted args");
+    // response.status(/*http status, 400*/).send("unsuppoerted args");
     // http statuses
     // 200 - ok
     // 400 - bad request
@@ -108,6 +153,46 @@ const app = express();
     // 500 = internal server error
     // hang, we have to response in any places
 })
+  app.post("/type", (request,response) => {
+    console.log("type");
+    let urlRequest = url.parse(request.url, true);
+    const c = urlRequest.query.value3;
+    console.log(typeof(c));
+    if ( _.toString(c) === "integer") {
+      let result = FuncName1(urlRequest.query, "integer")
+      if (result.success) {
+        response.end (result.result.toString());
+        console.log(result.result.toString());
+        return
+      }
+    }
+    if ( _.toString(c) === "string") {
+      let result = FuncName1(urlRequest.query, "string")
+      if (result.success) {
+        response.end (result.result.toString());
+        return
+      }
+    }
+    if ( _.toString(c) === "boolean" ) {
+      let result = FuncName1(urlRequest.query, "boolean")
+      if (result.success) {
+        response.end (result.result.toString());
+        console.log(result.result.toString());
+        return
+      }
+    }
+    if ( _.toString(c) === "object") {
+      let result = FuncName1(urlRequest.query, "object")
+      if (result.success) {
+        response.end (result.result.toString());
+        console.log(result.result.toString());
+        return
+      }
+    }
+    response.status(404).send("unsupported args");
+    return;
+
+  })
 
   app.post("/and", (request,response) => {
     console.log("and");
@@ -129,9 +214,10 @@ app.post("/stringsum", (request,response) => {
   let result = parseAsString(urlRequest.query, "strSum");
   if (result.success) {
     response.end(result.result.toString())
+    console.log(response.status)
     return
   }
-
+    response.status
   // the same, server will hang
 })
 

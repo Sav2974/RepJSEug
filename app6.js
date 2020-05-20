@@ -59,6 +59,7 @@ const parseAsString = (parameters,action) => {
 
 
   const FuncName1 = (keyVal, type) => {
+  //const FuncName1 = (key, value, type) => {
     const a = keyVal.value1;
     const b = keyVal.value2;
     console.log(Object.keys(keyVal))
@@ -73,20 +74,48 @@ const parseAsString = (parameters,action) => {
           return { success:false }
         }}
         if (type === "string") {
-          const parsed1 = _.toString(Object.keys(keyVal));
-          const parsed2 = _.toString(Object.values(keyVal));
-          return { success:true, result:(parsed1+parsed2) }
+          //
+          // value1 , value2
+          // 1. достать объект по индекс
+          // 2. обработать объект входных данных через for(const key of object <-входной объект)
+          // for (const key of obj)  {
+          //  console.log(key);
+          // console.log(obj[key])
+          // }
+          //
+          //for (let i = 0; i < 2; i++) {
+
+          const parsed1 = Object.keys(keyVal);
+          const parsed2 = Object.values(keyVal);
+          //console.log(parsed1, parsed2);
+
+          //console.log(parsed1);
+          //console.log(parsed2);
+
+          for (const i of parsed1) {
+          //console.log(parsed1[i]+parsed2[i]);
+          return { success:true, result:(parsed1[i]+parsed2[i]) }
+          }
         }
+
 
         if (type === "boolean") {
         //console.log(isBoolean(a), isBoolean(b));
           if (!isBoolean(a) || !isBoolean(b)) {
             return { success:false }
           }
-          return { success:true, result:a && b }
+          const a1 = null;
+          const a2 = "olo";
+          return a1 && a2;
+            return { success:true, result:toBoolean(a) && toBoolean(b) }
         }
         if (type === "object") {
-          return { success:true, result:true }
+          // const v = "some_another"
+          // const obj = { [v]: "ggg" }
+          // obj.some_antoher <- "ggg"
+          // 2. const obj = { "v"]: "ggg" }
+          // obj.v <- "ggg"
+          return { success:true, result: { [a]:b } }
         }
       return { success:false }
     }
@@ -156,9 +185,8 @@ const app = express();
   app.post("/type", (request,response) => {
     console.log("type");
     let urlRequest = url.parse(request.url, true);
-    const c = urlRequest.query.value3;
-    console.log(typeof(c));
-    if ( _.toString(c) === "integer") {
+    const c = urlRequest.query.type;
+    if (c === "integer") {
       let result = FuncName1(urlRequest.query, "integer")
       if (result.success) {
         response.end (result.result.toString());
@@ -166,14 +194,14 @@ const app = express();
         return
       }
     }
-    if ( _.toString(c) === "string") {
+    if ( c === "string") {
       let result = FuncName1(urlRequest.query, "string")
       if (result.success) {
         response.end (result.result.toString());
         return
       }
     }
-    if ( _.toString(c) === "boolean" ) {
+    if ( c === "boolean" ) {
       let result = FuncName1(urlRequest.query, "boolean")
       if (result.success) {
         response.end (result.result.toString());
@@ -181,11 +209,13 @@ const app = express();
         return
       }
     }
-    if ( _.toString(c) === "object") {
+    if ( c === "object") {
       let result = FuncName1(urlRequest.query, "object")
       if (result.success) {
-        response.end (result.result.toString());
-        console.log(result.result.toString());
+        // {}.toString() -> [object Object]
+
+        response.end (JSON.stringify(result.result));
+        console.log(JSON.stringify(result.result));
         return
       }
     }

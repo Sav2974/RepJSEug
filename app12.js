@@ -23,11 +23,26 @@ zadomNap2(){
     return newStr;
 }
 
+triple(){
+  var newStr = '';
+  for (let i = 1; i<=3; i++){
+    newStr += this.stroka;
+  }
+
+  return newStr;
+}
+
+zaglavn(){
+  var newStr = '';
+  newStr = this.stroka.charAt(0).toUpperCase() + this.stroka.substring(1);
+  return newStr;
+}
+
 }
 
   let param = new Param(process.argv[4]);
-  param.zadomNap();
-  console.log(param.zadomNap());
+  // param.triple();
+  console.log(param.zaglavn());
 
   // console.log(param.zadomNap(this.newStr));
   // console.log(param.newStr1)

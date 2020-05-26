@@ -46,7 +46,7 @@ const parseAsString = (parameters,action) => {
   const b = parameters.value2;
   //console.log (a,b);
   const parsed1 = _.toString(a);
-  const parsed2 = _.toString(b)
+  const parsed2 = _.toString(b);
   // what if input parameters are not string?
   if (typeof parsed1 !== "string" || typeof parsed2 !== "string") {
     return { success:false }
@@ -62,6 +62,7 @@ const parseAsString = (parameters,action) => {
   //const FuncName1 = (key, value, type) => {
     const a = keyVal.value1;
     const b = keyVal.value2;
+    console.log(JSON.stringify(keyVal, null,2))
     console.log(Object.keys(keyVal))
     console.log(Object.values(keyVal));
         if (type === "integer") {
@@ -85,18 +86,36 @@ const parseAsString = (parameters,action) => {
           //
           //for (let i = 0; i < 2; i++) {
 
-          const parsed1 = Object.keys(keyVal);
-          const parsed2 = Object.values(keyVal);
+          //const parsed1 = Object.keys(keyVal);
+          //const parsed2 = Object.values(keyVal);
           //console.log(parsed1, parsed2);
 
+    /*      --------------------------------------
+          |  value1        |           false   |
+          |  value2        |           true   |
+          |  type          |           string   |
+          --------------------------------------
+*/
           //console.log(parsed1);
           //console.log(parsed2);
+          let parsed1, parsed2;
+          //for (const i of _.keys(keyVal)) {// > for (const i of keyVal)
+          for (const i in keyVal) {
+            if ( i === "value1" ) {
+              //console.log(i);
+              //console.log(keyVal[i]);
+              parsed1 = keyVal[i];
 
-          for (const i of parsed1) {
-          //console.log(parsed1[i]+parsed2[i]);
-          return { success:true, result:(parsed1[i]+parsed2[i]) }
+            }
+            if ( i === "value2") {
+              parsed2 = keyVal[i]
+            }
+
           }
+          //console.log(parsed1, parsed2);
+          return { success:true, result:(parsed1+parsed2) }
         }
+
 
 
         if (type === "boolean") {
@@ -165,6 +184,9 @@ const parseAsNumber = (parameters,action) => {
 }
 
 const app = express();
+app.use(express.urlencoded());
+app.use(express.json());
+
   app.post("/or", (request,response) => {
     console.log("or");
     let urlRequest = url.parse(request.url, true);
@@ -223,6 +245,229 @@ const app = express();
     return;
 
   })
+
+  app.post("/sort", (request,response) => {
+    //console.log(request);
+    let urlRequest = url.parse(request.url, true)
+
+    let parsed1 = request.body[0], parsed2
+    //console.log(parsed1)
+
+    for (let i in request.body) {
+      //console.log(request.body[i])
+      if (parsed1 <= (request.body[i])) {
+        parsed1 = (request.body[i])
+
+      }
+
+    }
+    console.log(parsed1)
+    response.end(_.toString(parsed1))
+    //console.log(request.body);
+    //console.log(typeof request.body);
+  })
+
+  app.post("/sortKV", (request,response) => {
+    //console.log(request);
+    let urlRequest = url.parse(request.url, true)
+
+    const numbers = request.body
+    //console.log(parsed1)
+    let howmany = 0;
+    for (let i = 0; i < request.body.length; i++) {
+      let shouldcontinue = false;
+
+      for (let j = 0; j < request.body.length-i-1; j++) {
+        //console.log(request.body[i])
+        if (request.body[j] > request.body[j+1]) {
+          let srt = request.body[j+1];
+          request.body[j+1] = request.body[j];
+          request.body[j] = srt;
+          shouldcontinue = true;
+          ++howmany;
+        }
+
+      }
+      if ( shouldcontinue === false ) {
+        break;
+      }
+
+    //console.log(request.body);
+    //console.log(typeof request.body);
+      }
+      console.log(howmany);
+      response.end(JSON.stringify(request.body))
+  })
+
+
+  const arrayToList = (arr) => {
+
+    let head = { value:arr[0], next:null }
+    let tail = head
+  //  console.log(head);
+    for (let i = 1; i < arr.length; i++) {
+      let mObj = arr[i];
+
+      let obj = { value:mObj, next: null }
+      tail.next = obj;
+      tail = obj;
+    //  console.log(JSON.stringify(head,null,2))
+
+    }
+    return head;
+  }
+//сгенерировать дерево с 3мя уровнями вложенности
+//каждый элемент включал в себя 2 следующих (list1,list2)
+/*
+list: [ element1 ] -> [ element 2] -> [ element 3] -> [ element 4]
+
+tree          element1 <- { value:10 , next1: element2, next2: element3 }
+                |
+              __  __
+            |       \
+        element2   element3 <- { value: 4, next1: null, next2: null}
+          /   <- { value: 4, next1: element4, next2: null }
+     __
+    /
+  element4 <- { value: 7, next1: nullm next2: null}
+*/
+
+class a{
+  //public per;
+
+  constructor(){
+    console.log("constructor");
+    this.per = 0;
+
+  }
+func1(){
+  this.per = 1;
+  console.log("func");
+}
+}
+
+class b extends a{
+  constructor(){
+    super()
+    console.log("constructor b");
+  }
+  func1(){
+    console.log("func b");
+    super.func1();
+  }
+}
+
+app.post("/class", (request,response) => {
+const _b = new b();
+console.log(_b.per);
+
+_b.func1();
+console.log(_b.per);
+})
+
+function getRandomArbitrary(min, max) {
+  return Math.floor(Math.random() * (max - min) + min);
+}
+    const generateTree = ()  => {
+
+      let head = { value:getRandomArbitrary(0, 10), next1: null, next2: null };
+      let tail = head;
+      let tail1 = head;
+
+      let perem = { func: () =>
+        { }}
+      console.log(head);
+      for (let i = 1; i < 3; i++) {
+        let obj = { value: i, next1: null, next2: null };
+        tail.next1 = obj;
+
+        tail = obj;
+
+    //    for (let j = 1; j <= 1; j++) {
+    //      let obj1 = { value:getRandomArbitrary(0,10), next1: null, next2: null };
+          tail1.next2 = obj;
+    //      tail1 = obj1;
+    //    }
+        console.log(JSON.stringify(head, null, 2));
+      }
+    }
+    //  response.end(JSON.stringify(head));
+
+
+
+  app.post("/gentree", (request,response) => {
+
+    console.log(request.body);
+    let result = generateTree();
+    //console.log(JSON.stringify(request.body));
+    response.end("ok");
+  })
+
+
+  const printList = (list) => {
+
+    while (list.next !== null) {
+      console.log(list.value);
+      list = list.next;
+    }
+    console.log(list.value)
+  }
+
+  const arrayToDeque = (array) => {
+    let head = { prev:null, value:request.body[0], next:null }
+    let tail = head
+    console.log(head);
+    for (let i = 1; i < request.body.length; i++) {
+      let mObj = request.body[i];
+
+      let obj = { prev: tail, value:mObj, next: null }
+      tail.next = obj;
+
+      tail = obj;
+      console.log(JSON.stringify(head,null,2))
+
+    }
+    response.end(JSON.stringify(head))
+  }
+
+  app.post("/sortObj", (request,response) => {
+    //console.log(request);
+    let urlRequest = url.parse(request.url, true)
+
+  //  for (let j = 0; j < request.body.length; j++) {
+      //val = request.body[j];
+      let result = arrayToList(request.body);
+      let print = printList(result);
+//      response.end(JSON.stringify(head))
+  })
+
+
+/*    for (let i = 0; i < request.body.length; i++) {
+      let shouldcontinue = false;
+
+      for (let j = 0; j < request.body.length-i-1; j++) {
+        //console.log(request.body[i])
+        if (request.body[j] > request.body[j+1]) {
+          let srt = request.body[j+1];
+          request.body[j+1] = request.body[j];
+          request.body[j] = srt;
+          shouldcontinue = true;
+          ++howmany;
+        }
+
+      }
+      if ( shouldcontinue === false ) {
+        break;
+      }
+
+    //console.log(request.body);
+    //console.log(typeof request.body);
+      }
+      console.log(howmany);
+      response.end(JSON.stringify(request.body))
+  })
+
+*/
 
   app.post("/and", (request,response) => {
     console.log("and");
